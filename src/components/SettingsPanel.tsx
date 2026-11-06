@@ -11,9 +11,7 @@ import {
   Check,
   Sparkles,
   AlertTriangle,
-  Download,
 } from 'lucide-react';
-import { usePWAInstall } from '../hooks/usePWAInstall';
 
 export type ThemeMode = 'light' | 'dark';
 export type FontStyle = 'sans' | 'serif' | 'mono';
@@ -59,9 +57,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   const [savedToast, setSavedToast] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [resetDoneToast, setResetDoneToast] = useState(false);
-  const [showInstallGuide, setShowInstallGuide] = useState(false);
-
-  const { isInstallable, isInstalled, install } = usePWAInstall();
 
   useEffect(() => {
     setApiKeyInput(deepseekConfig.apiKey);
@@ -87,14 +82,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
     setTimeout(() => setResetDoneToast(false), 2000);
   };
 
-  const handleInstallClick = async () => {
-    if (isInstallable) {
-      await install();
-    } else {
-      setShowInstallGuide(true);
-    }
-  };
-
   const hasCustomKey = Boolean(deepseekConfig.apiKey && deepseekConfig.apiKey.trim());
 
   return (
@@ -103,38 +90,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
         aria-label="偏好设置便当盒"
         className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-stretch"
       >
-        {/* 便当格 A (App Icon & Mobile Install Tile - 12 cols): Eg 东方账 图标与手机安装 */}
-        <div
-          data-testid="app-install-card"
-          className="sm:col-span-12 liquid-glass p-5 sm:p-6 flex items-center justify-between gap-4"
-        >
-          <div className="flex items-center gap-3.5 min-w-0">
-            <img
-              src="/app-icon.png"
-              alt="Eg 东方账 图标"
-              className="w-12 h-12 rounded-2xl border border-[var(--ef-border)] object-cover shrink-0 shadow-xs"
-            />
-            <div className="min-w-0">
-              <h3 className="type-title whitespace-nowrap">Eg 东方账</h3>
-              <span className="type-caption block whitespace-nowrap">
-                {isInstalled ? '已安装至桌面' : '桌面应用 · APK 安装'}
-              </span>
-            </div>
-          </div>
-
-          {!isInstalled && (
-            <button
-              type="button"
-              data-testid="pwa-install-btn"
-              onClick={handleInstallClick}
-              className="min-h-[40px] px-4 py-2 rounded-2xl bg-[#93B259] hover:bg-[#82A248] text-white type-caption !text-white font-semibold flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer shadow-xs"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>手机安装</span>
-            </button>
-          )}
-        </div>
-
         {/* 便当格 0 (Primary Full-Width Bento Tile - 12 cols): DeepSeek 接口配置（精简无括号说明） */}
         <div
           data-testid="deepseek-settings-card"
@@ -378,54 +333,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
           </div>
         </div>
       </section>
-
-      {/* 手机安装说明弹窗 (Layer 2 Floating Modal via Portal) */}
-      {showInstallGuide &&
-        createPortal(
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="install-guide-title"
-            data-testid="install-guide-modal"
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45 backdrop-blur-xs"
-          >
-            <div className="liquid-glass-floating w-full max-w-xs p-6 rounded-3xl space-y-4 text-left spatial-morph border border-[var(--ef-border)]">
-              <div className="flex items-center gap-3">
-                <img
-                  src="/app-icon.png"
-                  alt="Eg 东方账"
-                  className="w-11 h-11 rounded-2xl border border-[var(--ef-border)] object-cover shrink-0"
-                />
-                <div>
-                  <h4 id="install-guide-title" className="type-title">
-                    下载 Eg 东方账
-                  </h4>
-                  <span className="type-caption block">手机端安装方式</span>
-                </div>
-              </div>
-
-              <div className="space-y-2 type-caption !text-[var(--ef-fg-strong)]">
-                <div className="p-3 liquid-glass-subtle space-y-1">
-                  <strong className="block text-[#93B259]">方式一：GitHub 自动打包 APK</strong>
-                  <span>上传至 GitHub 后，在仓库 Actions 页面直接下载 Eg-东方账.apk 安装。</span>
-                </div>
-                <div className="p-3 liquid-glass-subtle space-y-1">
-                  <strong className="block text-[#93B259]">方式二：手机浏览器直接安装</strong>
-                  <span>手机浏览器打开网址，点击菜单「添加到主屏幕」即可生成桌面 App。</span>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setShowInstallGuide(false)}
-                className="w-full min-h-[42px] px-4 py-2 rounded-2xl bg-[#93B259] hover:bg-[#82A248] type-body font-semibold !text-white cursor-pointer"
-              >
-                知道了
-              </button>
-            </div>
-          </div>,
-          document.body
-        )}
 
       {/* 防误触确认弹窗 (Layer 2 Floating Modal via Portal) */}
       {showResetConfirm &&

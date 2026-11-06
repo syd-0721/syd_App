@@ -79,7 +79,8 @@ export const AIReportPanel: React.FC<AIReportPanelProps> = ({
   const [isLoading, setIsLoading] = useState(false);
 
   const runDeepSeekAnalysis = useCallback(async () => {
-    setAiResult(buildLocalPreview());
+    const fallbackPreview = buildLocalPreview();
+    setAiResult(fallbackPreview);
     setIsLoading(true);
     try {
       const response = await fetch('/api/ai-analyze', {
@@ -99,12 +100,74 @@ export const AIReportPanel: React.FC<AIReportPanelProps> = ({
       if (response.ok) {
         const data: AIAnalysisResult = await response.json();
         setAiResult(data);
+        setIsLoading(false);
+        return;
       }
     } catch {
-      // keep local preview on error
-    } finally {
-      setIsLoading(false);
+      // If running in standalone Android APK without /api/ai-analyze, try direct DeepSeek call if user configured an API key
     }
+
+    if (deepseekConfig?.apiKey?.trim()) {
+      try {
+        const baseUrl = (deepseekConfig.baseUrl || 'https://api.deepseek.com').replace(/\/+$/, '');
+        const endpoint = baseUrl.endsWith('/v1')
+          ? `${baseUrl}/chat/completions`
+          : `${baseUrl}/v1/chat/completions`;
+        const dsRes = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${deepseekConfig.apiKey.trim()}`,
+          },
+          body: JSON.stringify({
+            model: deepseekConfig.model || 'deepseek-chat',
+            temperature: 0.3,
+            messages: [
+              {
+                role: 'system',
+                content:
+                  '你是记账AI助手。仅输出纯JSON：{"healthScore":75,"headline":"12字内结论","personalizedSavingTips":["建议1","建议2","建议3"]}，字符串内严禁使用双引号。',
+              },
+              {
+                role: 'user',
+                content: JSON.stringify({
+                  month: budget.monthKey,
+                  disposable: budget.disposable,
+                  spent: disposableSummary.totalSpent,
+                  willOverspend: forecast.willOverspend,
+                  categories: momComparison.map((m) => ({
+                    c: m.category,
+                    cur: m.currentAmount,
+                    mom: m.momPercentage,
+                  })),
+                }),
+              },
+            ],
+          }),
+        });
+        if (dsRes.ok) {
+          const dsData = await dsRes.json();
+          const content: string = dsData?.choices?.[0]?.message?.content || '';
+          const match = content.match(/\{[\s\S]*\}/);
+          if (match) {
+            const parsed = JSON.parse(match[0]);
+            setAiResult({
+              ...fallbackPreview,
+              healthScore: Number(parsed.healthScore) || fallbackPreview.healthScore,
+              headline: parsed.headline || fallbackPreview.headline,
+              personalizedSavingTips:
+                Array.isArray(parsed.personalizedSavingTips) &&
+                parsed.personalizedSavingTips.length > 0
+                  ? parsed.personalizedSavingTips
+                  : fallbackPreview.personalizedSavingTips,
+            });
+          }
+        }
+      } catch {
+        // keep local preview on error
+      }
+    }
+    setIsLoading(false);
   }, [
     buildLocalPreview,
     budget,

@@ -425,38 +425,29 @@ export default function App() {
             navigateToPage(0);
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
-          className="relative flex items-center gap-2.5 whitespace-nowrap shrink-0 h-full"
+          className="relative flex flex-col items-start justify-center whitespace-nowrap shrink-0 h-full"
         >
-          <img
-            src="/app-icon.png"
-            alt="Eg 东方账"
-            className={`w-10 h-10 rounded-xl border border-[var(--ef-border)] object-cover shadow-2xs origin-left transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-              isHeaderCollapsed ? 'scale-[0.78]' : 'scale-100'
+          <span
+            data-testid="header-aux-label"
+            aria-hidden={isHeaderCollapsed ? 'true' : undefined}
+            className={`font-mono text-[11px] font-semibold tracking-[0.18em] text-[#93B259] leading-none transition-[opacity,transform] duration-250 ease-[cubic-bezier(0.22,1,0.36,1)] origin-left ${
+              isHeaderCollapsed
+                ? 'opacity-0 -translate-y-2 scale-90 pointer-events-none'
+                : 'opacity-100 translate-y-0 scale-100'
             }`}
-          />
-          <div className="relative flex flex-col items-start justify-center h-full">
-            <span
-              data-testid="header-aux-label"
-              aria-hidden={isHeaderCollapsed ? 'true' : undefined}
-              className={`font-mono text-[11px] font-semibold tracking-[0.18em] text-[#93B259] leading-none transition-[opacity,transform] duration-250 ease-[cubic-bezier(0.22,1,0.36,1)] origin-left ${
-                isHeaderCollapsed
-                  ? 'opacity-0 -translate-y-2 scale-90 pointer-events-none'
-                  : 'opacity-100 translate-y-0 scale-100'
-              }`}
-            >
-              {'\u00A0Eg\u00A0'}
-            </span>
-            <span
-              data-testid="header-main-title"
-              className={`text-2xl sm:text-[26px] font-extrabold tracking-tight text-[var(--ef-fg-strong)] leading-tight origin-left transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-                isHeaderCollapsed
-                  ? '-translate-y-[7px] scale-[0.70]'
-                  : 'translate-y-0.5 scale-100'
-              }`}
-            >
-              东方账
-            </span>
-          </div>
+          >
+            {'\u00A0East\u00A0'}
+          </span>
+          <span
+            data-testid="header-main-title"
+            className={`text-2xl sm:text-[26px] font-extrabold tracking-tight text-[var(--ef-fg-strong)] leading-tight origin-left transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+              isHeaderCollapsed
+                ? '-translate-y-[7px] scale-[0.70]'
+                : 'translate-y-0.5 scale-100'
+            }`}
+          >
+            东方账
+          </span>
         </a>
 
         <div className="flex items-center gap-3 shrink-0">

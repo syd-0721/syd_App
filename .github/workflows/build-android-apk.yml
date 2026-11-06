@@ -1,18 +1,22 @@
-name: Build Android APK (Eg 东方账)
+name: Android Release (v0.1.0-alpha.1)
 
 on:
   push:
     branches: [ main, master ]
+    tags: [ 'v*' ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
-  build-apk:
+  build-and-release-apk:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Set up Node.js 22
         uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -23,34 +27,114 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Install dependencies & build web app
+      - name: Normalize package.json for public npm & build web app
         run: |
-          npm install
+          node -e '
+            const fs = require("fs");
+            const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
+            pkg.dependencies = {
+              "@capacitor/android": "^6.2.0",
+              "@capacitor/core": "^6.2.0",
+              "lucide-react": "^0.475.0",
+              "react": "^19.0.0",
+              "react-dom": "^19.0.0"
+            };
+            pkg.devDependencies = {
+              "@capacitor/cli": "^6.2.0",
+              "@tailwindcss/vite": "^4.0.6",
+              "@types/node": "^22.10.0",
+              "@types/react": "^19.0.0",
+              "@types/react-dom": "^19.0.0",
+              "@vitejs/plugin-react": "^4.3.4",
+              "tailwindcss": "^4.0.6",
+              "typescript": "^5.7.3",
+              "vite": "^6.1.0"
+            };
+            fs.writeFileSync("package.json", JSON.stringify(pkg, null, 2));
+          '
+          rm -rf node_modules package-lock.json
+          npm install --legacy-peer-deps
           npm run build
 
-      - name: Initialize Capacitor Android & apply app icon
+      - name: Initialize Capacitor Android & configure Eg 东方账 icon
         run: |
-          npm install @capacitor/core @capacitor/cli @capacitor/android @capacitor/assets --no-save
+          rm -rf android
           npx cap add android
-          mkdir -p assets
-          cp public/app-icon.png assets/icon-only.png
-          cp public/app-icon.png assets/icon-foreground.png
-          cp public/app-icon.png assets/splash.png
-          npx capacitor-assets generate --android --iconBackgroundColor '#FDF6E3' --splashBackgroundColor '#FDF6E3' || true
+          RES_DIR="android/app/src/main/res"
+          # Set adaptive icon background color to Everforest Light (#FDF6E3)
+          cat > "$RES_DIR/values/ic_launcher_background.xml" << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <color name="ic_launcher_background">#FDF6E3</color>
+          </resources>
+          EOF
+          # Generate standard & adaptive launcher icons from public/app-icon.png
+          convert public/app-icon.png -resize 48x48 "$RES_DIR/mipmap-mdpi/ic_launcher.png"
+          convert public/app-icon.png -resize 48x48 "$RES_DIR/mipmap-mdpi/ic_launcher_round.png"
+          convert public/app-icon.png -resize 72x72 -gravity center -background '#FDF6E3' -extent 108x108 "$RES_DIR/mipmap-mdpi/ic_launcher_foreground.png"
+
+          convert public/app-icon.png -resize 72x72 "$RES_DIR/mipmap-hdpi/ic_launcher.png"
+          convert public/app-icon.png -resize 72x72 "$RES_DIR/mipmap-hdpi/ic_launcher_round.png"
+          convert public/app-icon.png -resize 108x108 -gravity center -background '#FDF6E3' -extent 162x162 "$RES_DIR/mipmap-hdpi/ic_launcher_foreground.png"
+
+          convert public/app-icon.png -resize 96x96 "$RES_DIR/mipmap-xhdpi/ic_launcher.png"
+          convert public/app-icon.png -resize 96x96 "$RES_DIR/mipmap-xhdpi/ic_launcher_round.png"
+          convert public/app-icon.png -resize 144x144 -gravity center -background '#FDF6E3' -extent 216x216 "$RES_DIR/mipmap-xhdpi/ic_launcher_foreground.png"
+
+          convert public/app-icon.png -resize 144x144 "$RES_DIR/mipmap-xxhdpi/ic_launcher.png"
+          convert public/app-icon.png -resize 144x144 "$RES_DIR/mipmap-xxhdpi/ic_launcher_round.png"
+          convert public/app-icon.png -resize 216x216 -gravity center -background '#FDF6E3' -extent 324x324 "$RES_DIR/mipmap-xxhdpi/ic_launcher_foreground.png"
+
+          convert public/app-icon.png -resize 192x192 "$RES_DIR/mipmap-xxxhdpi/ic_launcher.png"
+          convert public/app-icon.png -resize 192x192 "$RES_DIR/mipmap-xxxhdpi/ic_launcher_round.png"
+          convert public/app-icon.png -resize 288x288 -gravity center -background '#FDF6E3' -extent 432x432 "$RES_DIR/mipmap-xxxhdpi/ic_launcher_foreground.png"
+
           npx cap sync android
 
-      - name: Build Debug APK
+      - name: Build Android APK via Gradle
         working-directory: android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleDebug --no-daemon
 
-      - name: Rename APK to Eg-东方账.apk
+      - name: Prepare Release APK Assets
         run: |
+          cp android/app/build/outputs/apk/debug/app-debug.apk Eg-东方账-v0.1.0-alpha.1.apk
           cp android/app/build/outputs/apk/debug/app-debug.apk Eg-东方账.apk
+          ls -lh Eg-东方账-v0.1.0-alpha.1.apk Eg-东方账.apk
 
-      - name: Upload Eg-东方账.apk Artifact
+      - name: Upload APK to Workflow Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Eg-东方账-Android-APK
-          path: Eg-东方账.apk
+          name: Eg-东方账-v0.1.0-alpha.1-APK
+          path: |
+            Eg-东方账-v0.1.0-alpha.1.apk
+            Eg-东方账.apk
+
+      - name: Publish GitHub Release v0.1.0-alpha.1
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RELEASE_TAG="v0.1.0-alpha.1"
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" Eg-东方账-v0.1.0-alpha.1.apk Eg-东方账.apk --clobber
+          else
+            gh release create "$RELEASE_TAG" Eg-东方账-v0.1.0-alpha.1.apk Eg-东方账.apk \
+              --target "${{ github.sha }}" \
+              --title "Eg 东方账 v0.1.0-alpha.1" \
+              --notes "Eg 东方账 Android 安装包 (v0.1.0-alpha.1)，点击下方 Assets 中的 APK 文件即可直接下载安装到手机。" \
+              --prerelease
+          fi
+
+      - name: Verify APK Release Asset is Downloadable & Valid
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RELEASE_TAG="v0.1.0-alpha.1"
+          gh release view "$RELEASE_TAG" --json tagName,assets
+          rm -rf /tmp/verify-apk
+          mkdir -p /tmp/verify-apk
+          gh release download "$RELEASE_TAG" --pattern "*.apk" --dir /tmp/verify-apk --clobber
+          ls -lh /tmp/verify-apk/
+          test -s /tmp/verify-apk/Eg-东方账-v0.1.0-alpha.1.apk
+          unzip -l /tmp/verify-apk/Eg-东方账-v0.1.0-alpha.1.apk | grep -E "AndroidManifest.xml|classes.dex|assets/public/index.html"

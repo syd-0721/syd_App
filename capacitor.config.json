@@ -1,6 +1,5 @@
 {
   "appId": "com.eg.dongfangzhang",
   "appName": "Eg 东方账",
-  "webDir": "dist",
-  "bundledWebRuntime": false
+  "webDir": "dist"
 }
