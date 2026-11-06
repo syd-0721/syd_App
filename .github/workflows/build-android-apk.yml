@@ -1,0 +1,56 @@
+name: Build Android APK (Eg 东方账)
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Install dependencies & build web app
+        run: |
+          npm install
+          npm run build
+
+      - name: Initialize Capacitor Android & apply app icon
+        run: |
+          npm install @capacitor/core @capacitor/cli @capacitor/android @capacitor/assets --no-save
+          npx cap add android
+          mkdir -p assets
+          cp public/app-icon.png assets/icon-only.png
+          cp public/app-icon.png assets/icon-foreground.png
+          cp public/app-icon.png assets/splash.png
+          npx capacitor-assets generate --android --iconBackgroundColor '#FDF6E3' --splashBackgroundColor '#FDF6E3' || true
+          npx cap sync android
+
+      - name: Build Debug APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Rename APK to Eg-东方账.apk
+        run: |
+          cp android/app/build/outputs/apk/debug/app-debug.apk Eg-东方账.apk
+
+      - name: Upload Eg-东方账.apk Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Eg-东方账-Android-APK
+          path: Eg-东方账.apk

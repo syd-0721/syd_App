@@ -1,0 +1,6 @@
+{
+  "name": "EverLedger 森屿记账",
+  "description": "采用 Everforest 液态玻璃美学的极简响应式单式记账应用，支持三金预算分配、四周超支常驻预警、日历红格超支复盘与 AI 收支分析。",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

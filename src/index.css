@@ -1,0 +1,290 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    /* Everforest Light Palette */
+    --ef-bg: #FDF6E3;
+    --ef-fg: #5C6A72;
+    --ef-fg-strong: #3A454B;
+    --ef-fg-muted: rgba(92, 106, 114, 0.72);
+    --ef-accent: #93B259;
+    --ef-accent-hover: #82A248;
+    --ef-danger: #D14343;
+
+    /* Three-Layer Depth System (Layer 0: Canvas, Layer 1: Card, Layer 2: Floating) */
+    --layer-1-bg: rgba(255, 253, 246, 0.78);
+    --layer-1-subtle: rgba(255, 252, 242, 0.56);
+    --layer-2-bg: rgba(255, 254, 250, 0.90);
+    --ef-border: rgba(92, 106, 114, 0.13);
+    --ef-border-strong: rgba(147, 178, 89, 0.38);
+
+    --shadow-layer-1: 0 8px 24px -6px rgba(92, 106, 114, 0.07), inset 0 1px 0 0 rgba(255, 255, 255, 0.75);
+    --shadow-layer-2: 0 16px 36px -8px rgba(58, 69, 75, 0.11), inset 0 1px 0 0 rgba(255, 255, 255, 0.85);
+    /* 大范围、低透明度、双层柔和阴影：不显山露水但自然拉开空间距离 */
+    --shadow-capsule-dock:
+      0 24px 56px -8px rgba(58, 69, 75, 0.065),
+      0 8px 20px -4px rgba(58, 69, 75, 0.04),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.88);
+
+    /* Unified Radii */
+    --radius-card: 24px;
+    --radius-inner: 16px;
+
+    /* Font Families */
+    --font-active: 'DM Sans', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+  }
+
+  .dark {
+    /* Everforest Dark Palette */
+    --ef-bg: #272E33;
+    --ef-fg: #D3C6AA;
+    --ef-fg-strong: #EAE2CC;
+    --ef-fg-muted: rgba(211, 198, 170, 0.68);
+    --ef-accent: #93B259;
+    --ef-accent-hover: #A7C080;
+    --ef-danger: #E67E80;
+
+    --layer-1-bg: rgba(46, 56, 60, 0.78);
+    --layer-1-subtle: rgba(55, 65, 69, 0.54);
+    --layer-2-bg: rgba(39, 46, 51, 0.90);
+    --ef-border: rgba(211, 198, 170, 0.13);
+    --ef-border-strong: rgba(147, 178, 89, 0.42);
+
+    --shadow-layer-1: 0 10px 28px -8px rgba(0, 0, 0, 0.28), inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+    --shadow-layer-2: 0 18px 40px -8px rgba(0, 0, 0, 0.36), inset 0 1px 0 0 rgba(255, 255, 255, 0.10);
+    --shadow-capsule-dock:
+      0 26px 60px -8px rgba(0, 0, 0, 0.24),
+      0 8px 22px -4px rgba(0, 0, 0, 0.14),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.09);
+  }
+
+  html[data-font="sans"] {
+    --font-active: 'DM Sans', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  }
+
+  html[data-font="serif"] {
+    --font-active: 'Songti SC', 'Noto Serif SC', 'Source Han Serif SC', Georgia, serif;
+  }
+
+  html[data-font="mono"] {
+    --font-active: 'JetBrains Mono', ui-monospace, SFMono-Regular, 'PingFang SC', monospace;
+  }
+
+  html[data-scale="sm"] {
+    font-size: 14.5px;
+  }
+
+  html[data-scale="md"] {
+    font-size: 16px;
+  }
+
+  html[data-scale="lg"] {
+    font-size: 17.5px;
+  }
+
+  /* Layer 0: Background Canvas */
+  body {
+    background-color: var(--ef-bg);
+    color: var(--ef-fg);
+    font-family: var(--font-active);
+    transition: background-color 180ms ease, color 180ms ease;
+    background-image:
+      radial-gradient(circle at 14% 14%, rgba(147, 178, 89, 0.14) 0%, transparent 42%),
+      radial-gradient(circle at 86% 82%, rgba(147, 178, 89, 0.10) 0%, transparent 46%);
+    background-attachment: fixed;
+    overflow-x: hidden;
+  }
+}
+
+/* ============================================================================
+ * 3. Fixed 4-Tier Typography Hierarchy (大标题 / 分组标题 / 正文 / 辅助文字)
+ * ============================================================================ */
+.type-display {
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--ef-fg-strong);
+}
+
+.type-title {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: var(--ef-fg-strong);
+}
+
+.type-body {
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--ef-fg);
+}
+
+.type-caption {
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--ef-fg-muted);
+}
+
+/* ============================================================================
+ * 4 & 5. Three-Layer Depth & Visual Consistency (Layer 1 Cards & Layer 2 Floating)
+ * ============================================================================ */
+.liquid-glass {
+  background: var(--layer-1-bg);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border: 1px solid var(--ef-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-layer-1);
+}
+
+.liquid-glass-subtle {
+  background: var(--layer-1-subtle);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--ef-border);
+  border-radius: var(--radius-inner);
+}
+
+.liquid-glass-floating {
+  background: var(--layer-2-bg);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  border: 1px solid var(--ef-border);
+  box-shadow: var(--shadow-layer-2);
+}
+
+.liquid-glass-capsule-dock {
+  background: var(--layer-2-bg);
+  backdrop-filter: blur(26px) saturate(155%);
+  -webkit-backdrop-filter: blur(26px) saturate(155%);
+  border: 1px solid var(--ef-border);
+  box-shadow: var(--shadow-capsule-dock);
+}
+
+.liquid-glass-accent {
+  background: linear-gradient(135deg, rgba(147, 178, 89, 0.22) 0%, rgba(147, 178, 89, 0.08) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--ef-border-strong);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-layer-1);
+}
+
+.liquid-glass-alert {
+  background: linear-gradient(135deg, rgba(230, 126, 128, 0.20) 0%, rgba(209, 67, 67, 0.09) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(209, 67, 67, 0.36);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-layer-1);
+}
+
+/* ============================================================================
+ * 7. Micro-interactions: 100-200ms Tactile Press Shrink & Spring Rebound
+ * ============================================================================ */
+button,
+[role="button"],
+[role="radio"],
+.tactile-press {
+  transition:
+    transform 150ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    opacity 150ms ease;
+  will-change: transform;
+}
+
+button:not(:disabled):active,
+[role="button"]:not(:disabled):active,
+[role="radio"]:not(:disabled):active,
+.tactile-press:active {
+  transform: scale(0.955);
+}
+
+.bento-interactive {
+  transition:
+    transform 160ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 160ms ease,
+    border-color 160ms ease;
+}
+
+.bento-interactive:hover {
+  transform: translateY(-1px);
+}
+
+.bento-interactive:active {
+  transform: scale(0.985);
+}
+
+/* ============================================================================
+ * 6. Continuous Spatial Animations (Directional Slide & Layout Morph)
+ * ============================================================================ */
+@keyframes spatialSlideFromRight {
+  0% {
+    opacity: 0;
+    transform: translate3d(32px, 0, 0) scale(0.985);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes spatialSlideFromLeft {
+  0% {
+    opacity: 0;
+    transform: translate3d(-32px, 0, 0) scale(0.985);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes spatialMorphIn {
+  0% {
+    opacity: 0.55;
+    transform: translate3d(0, 6px, 0) scale(0.99);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.spatial-slide-right {
+  animation: spatialSlideFromRight 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.spatial-slide-left {
+  animation: spatialSlideFromLeft 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.spatial-morph {
+  animation: spatialMorphIn 190ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.accordion-grid {
+  display: grid;
+  transition:
+    grid-template-rows 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 180ms ease;
+}
+
+.accordion-grid[data-expanded="true"] {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.accordion-grid[data-expanded="false"] {
+  grid-template-rows: 0fr;
+  opacity: 0;
+}
+
