@@ -55,7 +55,10 @@ jobs:
           rm -rf node_modules package-lock.json
           npm install --legacy-peer-deps
           npm run build
-
+      - name: Install ImageMagick
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y imagemagick
       - name: Initialize Capacitor Android & configure Eg 东方账 icon
         run: |
           rm -rf android
